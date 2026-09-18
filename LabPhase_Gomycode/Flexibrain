@@ -1,0 +1,235 @@
+import tkinter as tk
+import json
+from tkinter import messagebox
+
+class tracking:
+    def __init__(self, my_list):
+        self.questions = my_list
+        self.score = 0
+        self.index_question = 0
+        self.total_questions = len(my_list)
+    def get_progress(self):
+        return f"Question {self.index_question + 1} / {self.total_questions}"
+
+
+def start_quiz(niveau):
+    global game
+    try:
+        with open("questions.json", "r", encoding = "utf-8") as file:
+          questionnaire = json.load(file)
+        qz_choice = questionnaire[niveau]
+        game = tracking(qz_choice)
+
+        print(f"{len(qz_choice)} questions pour le niveau {niveau}")
+        
+        for element in window.winfo_children():
+            element.destroy()
+
+        show_questions()
+
+    except FileNotFoundError:
+        messagebox.showerror("Le fichier est introuvable")
+
+
+def show_questions (): 
+    global button_answer_options
+    button_answer_options = []
+
+    window.config(bg = "#f4f7f6")
+
+    question_count_label = tk.Label(
+        window,
+        text = game.get_progress(),
+        font = ("Helvetica", 10, "bold"),
+        fg = "#8fa0b5",
+        bg = "#f4f7f6"
+    )
+    question_count_label.grid(row=0, column=0, pady=(20, 0))
+
+    question = game.questions[game.index_question]
+    label_question = tk.Label(
+        window, 
+        text = question["question"], 
+        font = ("Helvetica", 14, "bold"), 
+        wraplength = 360,  
+        fg = "#2c3e50",
+        bg = "#f4f7f6"
+    )
+    label_question.grid(row=1, column=0, pady=(20, 25))
+
+    for i in range(0, 4):
+      btn_answer_option = tk.Button(
+          window,
+          text = question["options"][i],
+          font = ("Helvetica", 11),
+            fg = "#34495e",
+            bg = "#ffffff",  
+            width = 32,
+            bd = 1,
+            relief = "groove",
+            activebackground = "#eaeded",
+          command = lambda option_index = i: check_answer(question["options"][option_index], option_index )
+      )
+      btn_answer_option.grid(row = i+2, column = 0, pady = 5)
+      button_answer_options.append(btn_answer_option)
+
+    btn_exit = tk.Button(
+      window,
+      text = "❌  Abandonner",
+      font = ("Helvetica", 11),
+      fg = "#7f8c8d",
+      bg = "#f4f7f6",
+      bd = 0,
+      activeforeground = "#c0392b",
+      activebackground = "#f4f7f6",
+      command = show_home_page
+    )
+    btn_exit.grid(row=6, column=0, pady=(25, 10))
+
+
+def check_answer(choice, index_of_option):
+    for btn in button_answer_options:
+        btn.config(state="disabled")
+
+    valid_answer = game.questions[game.index_question]["answer"]
+    if choice == valid_answer :
+        game.score += 1
+        button_answer_options[index_of_option].config(bg="#91f3a8", fg="black", relief="groove")
+    else: 
+        button_answer_options[index_of_option].config(bg="#f15360", fg="black", relief="groove")
+        for btn in button_answer_options:
+            if btn.cget("text") == valid_answer:
+                btn.config(bg="#91f3a8", fg="black", relief="groove")
+    game.index_question +=1
+
+    def moving_to_next():
+      for element in window.winfo_children():
+            element.destroy()
+
+      if game.index_question >= game.total_questions:
+         show_summary_page()
+
+      else:
+         show_questions()
+    window.after(1500, moving_to_next)
+
+
+def show_home_page():
+  for element in window.winfo_children():
+        element.destroy()
+
+  window.config(bg = "#f4f7f6")
+
+  home_title = tk.Label(
+      window, 
+        text = "🧠 FlexiBrain", 
+        font = ("Helvetica", 24, "bold"), 
+        fg = "#1a407a",
+        bg = "#f4f7f6"
+  )
+  home_title.grid(row=0, column=0, pady=(40, 10))
+
+  subtitle = tk.Label(
+        window, 
+        text = "Musclez votre cerveau avec la science !", 
+        font = ("Helvetica", 11, "italic"), 
+        fg = "#5a738e",
+        bg = "#f4f7f6"
+    )
+  subtitle.grid(row=1, column=0, pady=(0, 30))
+
+  button_facile = tk.Button(
+      window, 
+      text = "🟢  Niveau Facile", 
+      font = ("Helvetica", 12, "bold"),
+      fg = "#1e4620",
+      bg = "#d4edda",
+      width = 18,
+      bd = 0,
+      relief = "flat",
+      activebackground = "#c3e6cb",
+      command = lambda: start_quiz("facile")
+  )
+  button_facile.grid(row=2, column=0, pady=10)
+
+  button_moyen = tk.Button(
+      window, 
+      text = "🟡  Niveau Moyen", 
+      font = ("Helvetica", 12, "bold"),
+      fg = "#4a3b00",
+      bg = "#fff3cd", 
+      width = 18,
+      bd = 0,
+      relief = "flat",
+      activebackground = "#ffeeba",
+      command = lambda: start_quiz("moyen")     
+  )
+  button_moyen.grid(row=3, column=0, pady=10)
+
+  button_difficile = tk.Button(
+      window, 
+      text = "🔴  Niveau Difficile", 
+      font = ("Helvetica", 12, "bold"),
+      fg = "#611a1f",
+      bg = "#f8d7da",
+      width = 18,
+      bd = 0,
+      relief = "flat",
+      activebackground = "#f5c6cb",
+      command = lambda: start_quiz("difficile")     
+  )
+  button_difficile.grid(row=4, column=0, pady=10)
+
+def show_summary_page():
+    window.config(bg = "#f4f7f6")
+
+    label_trophy = tk.Label(
+        window, 
+        text="🏆", 
+        font=("Helvetica", 48), 
+        bg = "#f4f7f6"
+    )
+    label_trophy.grid(row=0, column=0, pady=(30, 5))
+
+    label_gameover_title = tk.Label(
+        window, 
+        text = "Quiz Terminé !", 
+        font = ("Helvetica", 20, "bold"), 
+        fg = "#1a407a",
+        bg = "#f4f7f6"
+    )
+    label_gameover_title.grid(row=1, column=0, pady=(0, 20))
+
+    label_score = tk.Label(
+        window, 
+        text = f"Votre score : {game.score} / {game.total_questions}", 
+        font = ("Helvetica", 16, "bold"), 
+        fg = "#2c3e50",
+        bg = "#f4f7f6"
+    )
+    label_score.grid(row=2, column=0, pady=10)
+    
+    btn_return_homepage = tk.Button(
+        window,
+        text = "🔄  Menu Principal",
+        font = ("Helvetica", 12, "bold"),
+        fg = "#ffffff",
+        bg = "#1a407a",
+        width = 18,
+        bd = 0,
+        relief = "flat",
+        activebackground = "#153361",
+        command = show_home_page
+    )
+    btn_return_homepage.grid(row=5, column=0, pady=40)
+
+window = tk.Tk()
+window.title("FLEXIBRAIN")
+window.geometry("420x420")
+window.resizable(False, False)
+window.grid_columnconfigure(0, weight=1)
+#window.grid_rowconfigure(0, weight=1)
+
+show_home_page()
+
+window.mainloop()
